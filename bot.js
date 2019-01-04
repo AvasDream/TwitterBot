@@ -3,8 +3,9 @@ var Twit = require('twit');
 var crypto = require('crypto');
 var https = require("https");
 var credentials = utility.getCredentials();
-var qoute = '';
+var quote = 'Hello';
 
+//// TODO: Need to write a promise based getAoute Function!!
 
 var T = new Twit({
   consumer_key:         credentials.consumer_key,
@@ -66,6 +67,7 @@ function  createHash(value, algo) {
 
 
 function randomQuote() {
+  var ret = ''
   try {
     quote =  "Something went wrong while grabbing qoutes :("
     https.get('https://api.forismatic.com/api/1.0/?method=getQuote&format=jsonp&lang=en&jsonp=?', (resp) => {
@@ -76,16 +78,14 @@ function randomQuote() {
     });
     // The whole response has been received. Print out the result.
     resp.on('end', () => {
-      var stringData = JSON.stringify(data);
-      console.log(stringData);
-      var jsonData = JSON.parse(stringData);
-      console.log(jsonData.quoteText);
-      //var clean = cleanInput(stringData);
-      //var jsonData  = JSON.stringify(clean.toString());
-      //console.log("\x1b[42mReceived Quote:\n" + stringData + "\x1b[0m");
-      var ret = jsonData.quoteText + "\n" + jsonData.quoteAuthor + "\n";
+      var rawObject = data.substring(2, data.length-1)
+      var jsonData = JSON.parse(rawObject);
+      ret = jsonData.quoteText + "\n" + jsonData.quoteAuthor + "\n#Hackerangriff\n#Quote\n#Jennie";
       quote = ret;
-      console.log("\nQuote: \n" + quote + "\n");
+      // Workaround
+      var currentdate = new Date().toLocaleString();
+      tweet(quote + "\n" + createHash(currentdate));
+      return ret;
     });
     }).on("error", (err) => {
       console.log("Error: " + err.message);
@@ -93,6 +93,7 @@ function randomQuote() {
   } catch (e) {
     console.log("Error while getting qoute\n*****\n" + e + "\n\n");
   }
+  return ret;
 }
 
 function cleanInput(input) {
@@ -109,12 +110,5 @@ function cleanInput(input) {
    return s;
 }
 
-function main() {
-  var currentdate = new Date().toLocaleString();
-  quote = randomQuote();
-  console.log(quote);
-  //tweet(quote + "\n" + createHash(currentdate))
-}
-
-main()
-setInterval(main, 1000 * 2);
+randomQuote();
+setInterval(randomQuote, 1000 * 2);
