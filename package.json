@@ -1,0 +1,22 @@
+{
+  "name": "twitterbot",
+  "version": "1.0.0",
+  "description": "Small Project for learning to use the twiiter api",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AvasDream/TwitterBot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AvasDream/TwitterBot/issues"
+  },
+  "homepage": "https://github.com/AvasDream/TwitterBot#readme",
+  "dependencies": {
+    "twit": "^2.2.11"
+  }
+}
