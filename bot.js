@@ -4,6 +4,7 @@ var Twit = require('twit');
 var crypto = require('crypto');
 var https = require("https");
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+const fetch = require("node-fetch");
 var credentials = utility.getCredentials();
 var quote = 'Hello';
 
@@ -51,8 +52,6 @@ function searchTwitter(err, data, response) {
   }
 };
 
-
-
 function  createHash(value, algo) {
   try {
     if (!algo) {
@@ -67,55 +66,20 @@ function  createHash(value, algo) {
   }
 }
 
-
-function randomQuote() {
-  var ret = ''
-  try {
-    quote =  "Something went wrong while grabbing qoutes :("
-    https.get('https://api.forismatic.com/api/1.0/?method=getQuote&format=jsonp&lang=en&jsonp=?', (resp) => {
-    let data = '';
-    // A chunk of data has been recieved.
-    resp.on('data', (chunk) => {
-      data += chunk;
+function setupTweetWithQuote() {
+  let quote_url = 'https://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en&jsonp=?'
+  fetch(quote_url)
+    .then(response => response.json())
+    //.then(json => console.log(json))
+    .then(json => {
+      var quote = "\"" + json.quoteText + "\"\n" + json.quoteAuthor;
+      console.log(quote);
+      tweet(quote);
+    })
+    .catch(err => {
+      console.error(err)
     });
-    // The whole response has been received. Print out the result.
-    resp.on('end', () => {
-      var rawObject = data.substring(2, data.length-1)
-      var jsonData = JSON.parse(rawObject);
-      ret = jsonData.quoteText + "\n" + jsonData.quoteAuthor;
-      quote = ret;
-      tweet(quote + "\n" + createHash(currentdate));
-      return ret;
-    });
-    }).on("error", (err) => {
-      console.log("Error: " + err.message);
-    });
-  } catch (e) {
-    console.log("Error while getting qoute\n*****\n" + e + "\n\n");
-  }
-  return ret;
-}
-function gotQuote(statusCode, result) {
-      //console.log("onResult: (" + statusCode + ")" + JSON.stringify(result));
-      return result
 }
 
-
-
-function getRandomQuote() {
-  var options = {
-    host: 'api.forismatic.com',
-    port: 443,
-    path: '/api/1.0/?method=getQuote&format=jsonp&lang=en&jsonp=?',
-    method: 'GET'
-  }
-  requests.getJSON(options, function(statusCode, result) {
-    var rawObject = result.substring(2, result.length-1)
-    var jsonData = JSON.parse(rawObject);
-    ret = jsonData.quoteText + "\n" + jsonData.quoteAuthor;
-    console.log(ret);
-});
-}
-
-getRandomQuote();
-setInterval(getRandomQuote, 1000 * 2);
+setupTweetWithQuote()
+setInterval(setupTweetWithQuote, 1000 * 2);
