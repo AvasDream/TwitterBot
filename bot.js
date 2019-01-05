@@ -1,4 +1,5 @@
 var utility = require('./utility.js');
+var requests = require('./requests.js');
 var Twit = require('twit');
 var crypto = require('crypto');
 var https = require("https");
@@ -94,42 +95,27 @@ function randomQuote() {
   }
   return ret;
 }
-
-function get(url) {
-  // Return a new promise.
-  return new Promise(function(resolve, reject) {
-    // Do the usual XHR stuff
-    var req = new XMLHttpRequest();
-    req.open('GET', url);
-
-    req.onload = function() {
-      // This is called even on 404 etc
-      // so check the status
-      if (req.status == 200) {
-        // Resolve the promise with the response text
-        resolve(req.response);
-      }
-      else {
-        // Otherwise reject with the status text
-        // which will hopefully be a meaningful error
-        reject(Error(req.statusText));
-      }
-    };
-
-    // Handle network errors
-    req.onerror = function() {
-      reject(Error("Network Error"));
-    };
-
-    // Make the request
-    req.send();
-  });
+function gotQuote(statusCode, result) {
+      //console.log("onResult: (" + statusCode + ")" + JSON.stringify(result));
+      return result
 }
 
-get('https://api.forismatic.com/api/1.0/?method=getQuote&format=jsonp&lang=en&jsonp=?').then(function(response) {
-  console.log("Success!:\n", response);
-}, function(error) {
-  console.error("Failed!:\n", error);
-});
 
-setInterval(get, 1000 * 2);
+
+function getRandomQuote() {
+  var options = {
+    host: 'api.forismatic.com',
+    port: 443,
+    path: '/api/1.0/?method=getQuote&format=jsonp&lang=en&jsonp=?',
+    method: 'GET'
+  }
+  requests.getJSON(options, function(statusCode, result) {
+    var rawObject = result.substring(2, result.length-1)
+    var jsonData = JSON.parse(rawObject);
+    ret = jsonData.quoteText + "\n" + jsonData.quoteAuthor;
+    console.log(ret);
+});
+}
+
+getRandomQuote();
+setInterval(getRandomQuote, 1000 * 2);
