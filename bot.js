@@ -2,6 +2,7 @@ var utility = require('./utility.js');
 var Twit = require('twit');
 var crypto = require('crypto');
 var https = require("https");
+var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 var credentials = utility.getCredentials();
 var quote = 'Hello';
 
@@ -80,10 +81,8 @@ function randomQuote() {
     resp.on('end', () => {
       var rawObject = data.substring(2, data.length-1)
       var jsonData = JSON.parse(rawObject);
-      ret = jsonData.quoteText + "\n" + jsonData.quoteAuthor + "\n#Hackerangriff\n#Quote\n#Jennie";
+      ret = jsonData.quoteText + "\n" + jsonData.quoteAuthor;
       quote = ret;
-      // Workaround
-      var currentdate = new Date().toLocaleString();
       tweet(quote + "\n" + createHash(currentdate));
       return ret;
     });
@@ -96,19 +95,41 @@ function randomQuote() {
   return ret;
 }
 
-function cleanInput(input) {
-  var s = input
-  s = s.replace(/\\n/g, "\\n")
-       .replace(/\\'/g, "\\'")
-       .replace(/\\"/g, '\\"')
-       .replace(/\\&/g, "\\&")
-       .replace(/\\r/g, "\\r")
-       .replace(/\\t/g, "\\t")
-       .replace(/\\b/g, "\\b")
-       .replace(/\\f/g, "\\f");
-   s = s.replace(/[\u0000-\u0019]+/g,"");
-   return s;
+function get(url) {
+  // Return a new promise.
+  return new Promise(function(resolve, reject) {
+    // Do the usual XHR stuff
+    var req = new XMLHttpRequest();
+    req.open('GET', url);
+
+    req.onload = function() {
+      // This is called even on 404 etc
+      // so check the status
+      if (req.status == 200) {
+        // Resolve the promise with the response text
+        resolve(req.response);
+      }
+      else {
+        // Otherwise reject with the status text
+        // which will hopefully be a meaningful error
+        reject(Error(req.statusText));
+      }
+    };
+
+    // Handle network errors
+    req.onerror = function() {
+      reject(Error("Network Error"));
+    };
+
+    // Make the request
+    req.send();
+  });
 }
 
-randomQuote();
-setInterval(randomQuote, 1000 * 2);
+get('https://api.forismatic.com/api/1.0/?method=getQuote&format=jsonp&lang=en&jsonp=?').then(function(response) {
+  console.log("Success!:\n", response);
+}, function(error) {
+  console.error("Failed!:\n", error);
+});
+
+setInterval(get, 1000 * 2);
