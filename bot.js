@@ -1,14 +1,9 @@
 var utility = require('./utility.js');
-var requests = require('./requests.js');
 var Twit = require('twit');
 var crypto = require('crypto');
-var https = require("https");
-var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const fetch = require("node-fetch");
 var credentials = utility.getCredentials();
 var quote = 'Hello';
-
-//// TODO: Need to write a promise based getAoute Function!!
 
 var T = new Twit({
   consumer_key:         credentials.consumer_key,
@@ -66,6 +61,18 @@ function  createHash(value, algo) {
   }
 }
 
+function getHashtags(quote) {
+  var params = {
+    id: 1
+  }
+  T.get('trends/place', params, function(err, data, response) {
+    console.log(JSON.stringify(data, undefined, 2));
+        console.log(data.trends.name[0]);
+    //var trends = data.trends;
+    //var josn = JSON.parse(trends);
+    //console.log(trends);
+  });
+}
 function setupTweetWithQuote() {
   let quote_url = 'https://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en&jsonp=?'
   fetch(quote_url)
@@ -81,5 +88,6 @@ function setupTweetWithQuote() {
     });
 }
 
+
 setupTweetWithQuote()
-setInterval(setupTweetWithQuote, 1000 * 2);
+setInterval(setupTweetWithQuote, 1000 * 60 * 15);
